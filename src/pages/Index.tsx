@@ -1,11 +1,38 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import TurnDisplay from "@/components/TurnDisplay";
 import StatusBanner from "@/components/StatusBanner";
 import AppointmentInfo from "@/components/AppointmentInfo";
 import RemindersCard from "@/components/RemindersCard";
 import SocialFooter from "@/components/SocialFooter";
 
+import { getActiveTurn } from '@/lib/supabaseQueries'
+
 const Index = () => {
+  const [numero, setNumero] = useState<string | null>(null)
+  const [estado, setEstado] = useState<string | null>(null)
+  const [tiempoEspera, setTiempoEspera] = useState<number | null>(null)
+  const [fechaLlamado, setFechaLlamado] = useState<string | null>(null)
+
+  useEffect(() => {
+    let mounted = true
+    const load = async () => {
+      try {
+        const data = await getActiveTurn()
+        if (!data) return
+        if (mounted) {
+          setNumero(data.numero)
+          setEstado(data.estado)
+          setTiempoEspera(data.tiempo_espera ?? null)
+          setFechaLlamado(data.fecha_llamado ?? null)
+        }
+      } catch (err) {
+        console.error('Error cargando datos de turno', err)
+      }
+    }
+    load()
+    return () => { mounted = false }
+  }, [])
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <main className="flex-1 max-w-2xl mx-auto w-full px-4 py-8">
@@ -18,16 +45,14 @@ const Index = () => {
           <Logo />
         </div>
 
-        {/* Turn Display: ahora la obtención del turno está en `src/lib/supabaseQueries.ts` */}
-        <TurnDisplay />
-        <StatusBanner 
-          message="Aún se encuentra en lista de espera, no ha sido llamado pero su turno está próximo."
-        />
+        {/* Turn Display: ahora la obtención del turno se hace al cargar la página */}
+        <TurnDisplay turnNumber={numero ?? 'X-000'} />
+        <StatusBanner estado={estado} tiempoEspera={tiempoEspera} />
 
         {/* Appointment Info */}
         <AppointmentInfo 
-          estimatedTime="20 minutos"
-          appointmentTime="10:01 AM"
+          estimatedTime={tiempoEspera ? `${tiempoEspera} minutos` : '---'}
+          appointmentTime={fechaLlamado ? new Date(fechaLlamado).toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' }) : '---'}
           location="{Área designada}"
         />
 
@@ -59,37 +84,77 @@ const Index = () => {
  * de reactivar el cliente en `src/lib/supabase.ts`.
  */
 const Logo = () => {
-  const [logoUrl, setLogoUrl] = useState<string | null>(null)
+  // El logo se obtiene en este orden:
+  // 1) URL guardada por el usuario en localStorage (`SITE_LOGO_URL`)
+  // 2) variable de entorno `VITE_SITE_LOGO_URL`
+  // 3) `/logo.png` en la carpeta public
+  const saved = (typeof window !== 'undefined') ? localStorage.getItem('SITE_LOGO_URL') : null
+  const envLogo = (import.meta.env.VITE_SITE_LOGO_URL as string | undefined)
+  const defaultSrc = envLogo && envLogo.length ? envLogo : 'https://upload.wikimedia.org/wikipedia/commons/9/92/Espol_Logo_2023.png'
 
-  useEffect(() => {
-    let mounted = true
+  const initialSrc = saved && saved.length ? saved : defaultSrc
+  const [logoSrc, setLogoSrc] = useState<string>(initialSrc)
+  const [showImage, setShowImage] = useState(true)
+  const [editing, setEditing] = useState(false)
+  const [inputValue, setInputValue] = useState<string>(saved ?? '')
 
-    const load = async () => {
-      // Intentamos obtener el logo del sitio (si está configurado en settings)
-      // y caemos al placeholder si no hay nada.
-      try {
-        const { getSiteLogoUrl } = await import('@/lib/supabaseQueries')
-        const url = await getSiteLogoUrl()
-        if (mounted) setLogoUrl(url)
-      } catch (err) {
-        // Si la importación o la consulta fallan, mantenemos el placeholder
-        console.warn('No se pudo cargar el logo desde Supabase, usando placeholder', err)
-        if (mounted) setLogoUrl(null)
-      }
+  const save = () => {
+    try {
+      localStorage.setItem('SITE_LOGO_URL', inputValue)
+      setLogoSrc(inputValue || defaultSrc)
+      setShowImage(true)
+      setEditing(false)
+    } catch (err) {
+      console.error('No se pudo guardar la URL del logo', err)
     }
+  }
 
-    load()
-    return () => {
-      mounted = false
+  const reset = () => {
+    try {
+      localStorage.removeItem('SITE_LOGO_URL')
+    } catch (err) {
+      /* ignore */
     }
-  }, [])
+    setInputValue('')
+    setLogoSrc(defaultSrc)
+    setShowImage(true)
+    setEditing(false)
+  }
 
   return (
-    <div className="bg-secondary rounded-lg h-16 flex items-center justify-center shadow-sm">
-      {logoUrl ? (
-        <img src={logoUrl} alt="Logo" className="h-12 w-auto rounded-full" />
-      ) : (
-        <span className="text-muted-foreground text-sm font-medium">LOGO</span>
+    <div className="bg-secondary rounded-lg h-20 flex flex-col items-center justify-center shadow-sm p-2">
+      <div className="flex items-center gap-4">
+        {showImage ? (
+          <img
+            src={logoSrc}
+            alt="Logo"
+            className="h-12 w-auto rounded-full"
+            onError={() => setShowImage(false)}
+          />
+        ) : (
+          <span className="text-muted-foreground text-sm font-medium">LOGO</span>
+        )}
+
+        <button
+          type="button"
+          className="text-sm text-muted-foreground underline"
+          onClick={() => setEditing(v => !v)}
+        >
+          {editing ? 'Cerrar' : 'Editar'}
+        </button>
+      </div>
+
+      {editing && (
+        <div className="mt-2 w-full flex gap-2">
+          <input
+            className="flex-1 rounded-md border px-2 py-1 text-sm"
+            placeholder="Pega la URL del logo aquí"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+          />
+          <button className="btn btn-primary px-3 py-1 text-sm" onClick={save}>Guardar</button>
+          <button className="px-3 py-1 text-sm" onClick={reset}>Restablecer</button>
+        </div>
       )}
     </div>
   )
