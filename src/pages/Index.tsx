@@ -5,33 +5,39 @@ import AppointmentInfo from "@/components/AppointmentInfo";
 import RemindersCard from "@/components/RemindersCard";
 import SocialFooter from "@/components/SocialFooter";
 
-import { getActiveTurn } from '@/lib/supabaseQueries'
+import { getActiveTurn, getRandomTurn } from '@/lib/supabaseQueries'
 
 const Index = () => {
   const [numero, setNumero] = useState<string | null>(null)
   const [estado, setEstado] = useState<string | null>(null)
   const [tiempoEspera, setTiempoEspera] = useState<number | null>(null)
   const [fechaLlamado, setFechaLlamado] = useState<string | null>(null)
+  const [location, setLocation] = useState<string | null>(null)
 
   useEffect(() => {
     let mounted = true
     const load = async () => {
       try {
-        const data = await getActiveTurn()
+        // *** MODIFICACIÓN AQUÍ ***
+        // Siempre llama a getRandomTurn() y elimina la verificación de VITE_USE_RANDOM_TURN
+        const data = await getRandomTurn() // ¡Llama directamente a la función aleatoria!
+
         if (!data) return
         if (mounted) {
           setNumero(data.numero)
           setEstado(data.estado)
           setTiempoEspera(data.tiempo_espera ?? null)
           setFechaLlamado(data.fecha_llamado ?? null)
+          setLocation((data as any).categoria_nombre ?? null)
         }
       } catch (err) {
         console.error('Error cargando datos de turno', err)
       }
     }
     load()
+    // El cleanup sigue siendo solo para evitar actualizaciones de estado no deseadas.
     return () => { mounted = false }
-  }, [])
+  }, []) // Las dependencias vacías aseguran que se ejecute en cada carga (F5)
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -46,24 +52,24 @@ const Index = () => {
         </div>
 
         {/* Turn Display: ahora la obtención del turno se hace al cargar la página */}
-        <TurnDisplay turnNumber={numero ?? 'X-000'} />
+        <TurnDisplay turnNumber={numero} />
         <StatusBanner estado={estado} tiempoEspera={tiempoEspera} />
 
         {/* Appointment Info */}
-        <AppointmentInfo 
+        <AppointmentInfo
           estimatedTime={tiempoEspera ? `${tiempoEspera} minutos` : '---'}
           appointmentTime={fechaLlamado ? new Date(fechaLlamado).toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' }) : '---'}
-          location="{Área designada}"
+          location={location ?? '---'}
         />
 
         {/* Reminders */}
-        <RemindersCard 
+        <RemindersCard
           reminders={[
             "Favor acercarse a su cita con al menos 10 minutos de anticipación.",
-            "Recuerde en caso de haber sido solicitado.",
-            "{Otro recordatorio}",
-            "{Otro recordatorio}",
-            "{Otro recordatorio}"
+            "Recuerde traer su documento de identidad en caso de haber sido solicitado.",
+            "Si no puede asistir, cancele su turno con al menos 2 horas de anticipación.",
+            "Mantenga su celular en silencio o vibrador mientras es atendido.",
+            "Anote lo más importante de su cita para futuras referencias.",
           ]}
         />
       </main>

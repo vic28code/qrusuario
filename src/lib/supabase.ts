@@ -4,16 +4,24 @@ import { createClient } from '@supabase/supabase-js'
 const DEFAULT_SUPABASE_URL = 'https://alxniogydwddgtuywksy.supabase.co'
 
 const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL as string) || DEFAULT_SUPABASE_URL
-const supabaseAnonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY as string) || ''
+// Leer la clave ANON estándar o la PUBLISHABLE_KEY si ese es el nombre en .env
+const supabaseAnonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY as string) || (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string) || ''
+
+let supabase: any
 
 if (!supabaseAnonKey) {
-	// Aviso: la clave anónima debe definirse en `.env` para que las peticiones funcionen.
-	// Puedes crear un archivo `.env` con:
-	// VITE_SUPABASE_URL=https://alxniogydwddgtuywksy.supabase.co
-	// VITE_SUPABASE_ANON_KEY=<tu-anon-key>
-	console.warn('VITE_SUPABASE_ANON_KEY no está definida. Algunas llamadas a Supabase pueden fallar.')
-}
+	// Si no hay clave, no crear client real para evitar que la app explote.
+		console.warn('VITE_SUPABASE_ANON_KEY / VITE_SUPABASE_PUBLISHABLE_KEY no está definida. Algunas llamadas a Supabase pueden fallar.')
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+			// Stub mínimo con las operaciones que usamos en la app para evitar crash.
+				supabase = {
+						from: (_table: string) => ({ select: async () => ({ data: null, error: null }) }),
+								storage: { from: (_bucket: string) => ({ getPublicUrl: (_path: string) => ({ data: { publicUrl: '' } }) }) },
+									}
+									} else {
+										supabase = createClient(supabaseUrl, supabaseAnonKey)
+										}
 
-export default supabase
+										export { supabase }
+										export default supabase
+										
