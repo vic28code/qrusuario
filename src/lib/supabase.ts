@@ -1,27 +1,39 @@
 import { createClient } from '@supabase/supabase-js'
 
-// URL por defecto proporcionada por el usuario
-const DEFAULT_SUPABASE_URL = 'https://alxniogydwddgtuywksy.supabase.co'
+// 1. Leemos las variables del .env
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+const supabaseAnonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY as string) || (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string);
 
-const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL as string) || DEFAULT_SUPABASE_URL
-// Leer la clave ANON estándar o la PUBLISHABLE_KEY si ese es el nombre en .env
-const supabaseAnonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY as string) || (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string) || ''
+let supabase: any;
 
-let supabase: any
+// 2. Validamos que existan. Si no existen, mostramos error y creamos un "stub" (cliente falso)
+// para que la app no se rompa totalmente al iniciar, pero avise en consola.
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.warn(
+    '⚠️ Faltan las credenciales de Supabase en el archivo .env (VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY).'
+  );
 
-if (!supabaseAnonKey) {
-	// Si no hay clave, no crear client real para evitar que la app explote.
-		console.warn('VITE_SUPABASE_ANON_KEY / VITE_SUPABASE_PUBLISHABLE_KEY no está definida. Algunas llamadas a Supabase pueden fallar.')
+  // Stub mínimo para evitar crash inmediato
+  supabase = {
+    from: (_table: string) => ({
+      select: async () => ({ data: null, error: { message: "No connection" } }),
+      insert: async () => ({ data: null, error: { message: "No connection" } }),
+      update: async () => ({ data: null, error: { message: "No connection" } }),
+    }),
+    storage: {
+      from: (_bucket: string) => ({
+        getPublicUrl: (_path: string) => ({ data: { publicUrl: '' } })
+      })
+    },
+    auth: {
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+      getSession: async () => ({ data: { session: null }, error: null }),
+    }
+  };
+} else {
+  // 3. Si todo está bien, creamos el cliente real
+  supabase = createClient(supabaseUrl, supabaseAnonKey);
+}
 
-			// Stub mínimo con las operaciones que usamos en la app para evitar crash.
-				supabase = {
-						from: (_table: string) => ({ select: async () => ({ data: null, error: null }) }),
-								storage: { from: (_bucket: string) => ({ getPublicUrl: (_path: string) => ({ data: { publicUrl: '' } }) }) },
-									}
-									} else {
-										supabase = createClient(supabaseUrl, supabaseAnonKey)
-										}
-
-										export { supabase }
-										export default supabase
-										
+export { supabase };
+export default supabase;
