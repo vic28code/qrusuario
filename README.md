@@ -1,73 +1,68 @@
-# Welcome to your Lovable project
+# Sistema Turnero – Interfaz Usuario (QR)
 
-## Project info
+**Empresa: HANGAROA**
 
-**URL**: https://lovable.dev/projects/ff84b1eb-5760-4445-904d-3d3717894e13
+## Descripción
 
-## How can I edit this code?
+Este proyecto corresponde a la **interfaz web orientada al usuario final**, a la cual se accede mediante el **escaneo de un código QR único** impreso en el ticket de turno.
+Cada código QR está asociado a un turno específico, permitiendo al usuario consultar en tiempo real la información correspondiente a su atención.
 
-There are several ways of editing your application.
+La página muestra de forma clara los **datos del turno**, el **estado actual**, el **número de personas en espera**, el **turno en atención** y **recomendaciones útiles** mientras el usuario aguarda, mejorando la transparencia y la experiencia del cliente.
 
-**Use Lovable**
+---
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/ff84b1eb-5760-4445-904d-3d3717894e13) and start prompting.
+## Recursos necesarios
 
-Changes made via Lovable will be committed automatically to this repo.
+Para clonar el repositorio y ejecutar el proyecto localmente, se requiere:
 
-**Use your preferred IDE**
+* **Node.js** (versión recomendada: LTS)
+* **npm**
+* **Git**
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+Editor de código recomendado:
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+* Visual Studio Code
 
-Follow these steps:
+---
+
+## Ejecución del proyecto (clonado)
+
+Siga los pasos a continuación para ejecutar el proyecto en entorno local:
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+# Clonar el repositorio
+git clone <URL_DEL_REPOSITORIO>
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Ingresar al directorio del proyecto
+cd <NOMBRE_DEL_PROYECTO>
 
-# Step 3: Install the necessary dependencies.
-npm i
+# Instalar dependencias
+npm install
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Ejecutar el proyecto en modo desarrollo
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Una vez iniciado, el sistema podrá ser accedido desde el navegador mediante la URL generada, simulando el acceso del usuario tras escanear el código QR.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+---
 
-**Use GitHub Codespaces**
+## Funcionalidad principal
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+* Visualización del **número de turno**
+* Estado del turno (en espera, en atención, finalizado)
+* Información de la atención actual
+* Cantidad estimada de turnos por delante
+* Recomendaciones y mensajes informativos para el usuario
+* Acceso mediante **QR único por turno**
 
-## What technologies are used for this project?
+---
 
-This project is built with:
+## Tecnologías utilizadas
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+* Vite
+* React
+* TypeScript
+* Tailwind CSS
+* shadcn-ui
 
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/ff84b1eb-5760-4445-904d-3d3717894e13) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
