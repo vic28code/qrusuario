@@ -22,11 +22,23 @@ const ConsultaTurno = () => {
         const data = await getTurnByNumber(id);
         if (isMounted) {
           if (data) {
-            setTurno(data);
-            setError(false);
+            const estado = data.estado;
+            const esRecuperado = data.es_recuperado === true;
+
+            const turnoValido =
+              estado !== 'cancelado' &&
+              !(estado === 'perdido' && !esRecuperado);
+
+            if (turnoValido) {
+              setTurno(data);
+              setError(false);
+            } else {
+              setError(true);
+            }
           } else {
             setError(true);
           }
+
           setLoading(false);
         }
       } catch (err) {

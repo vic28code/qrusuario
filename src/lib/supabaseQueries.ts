@@ -44,13 +44,11 @@ export async function getTurnByNumber(turnCode: string): Promise<TurnData | null
     console.log("🔍 Buscando turno:", turnCode);
 
     const { data, error } = await supabase
-      .from('turno') // Tabla correcta
-      .select(`
-        *,
-        categoria:categoria_id ( nombre, tiempo_prom_seg ) 
-      `)
-      .eq('codigo', turnCode) // Columna correcta
+      .from('turno')
+      .select(`*,es_recuperado,categoria:categoria_id ( nombre, tiempo_prom_seg )`)
+      .eq('codigo', turnCode)
       .maybeSingle();
+
 
     if (error) {
       console.error("❌ Error Supabase:", error);
@@ -69,11 +67,12 @@ export async function getTurnByNumber(turnCode: string): Promise<TurnData | null
       id: data.id,
       numero: data.codigo,
       estado: normalizeEstado(data.estado),
-      tiempo_espera: tiempoFinal, 
+      tiempo_espera: tiempoFinal,
       fecha_llamado: data.llamado_en,
       fecha_creacion: data.emitido_en,
       categoria_nombre: catData.nombre,
       categoria_tiempo: catData.tiempo,
+      es_recuperado: data.es_recuperado
     };
   } catch (err) {
     console.error('Crash en getTurnByNumber:', err);
@@ -86,7 +85,7 @@ export async function getTurnByNumber(turnCode: string): Promise<TurnData | null
 export async function getRandomTurn(): Promise<TurnData | null> {
   // CAMBIO IMPORTANTE: Devolvemos null siempre.
   // Así evitamos que el usuario vea un turno "random" si su QR falla.
-  return null; 
+  return null;
 }
 
 export async function getActiveTurn(): Promise<TurnData | null> {
