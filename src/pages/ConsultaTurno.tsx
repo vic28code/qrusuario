@@ -6,6 +6,7 @@ import StatusBanner from "@/components/StatusBanner";
 import TurnDisplay from "@/components/TurnDisplay";
 import AppointmentInfo from "@/components/AppointmentInfo";
 
+
 const ConsultaTurno = () => {
   const { id } = useParams<{ id: string }>();
   
