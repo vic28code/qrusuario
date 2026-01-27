@@ -50,7 +50,7 @@ const ConsultaTurno = () => {
 
   // --- VISTA ESPECIAL: TURNO PERDIDO ---
   // Si el turno está perdido, mostramos solo la franja negra y ocultamos el resto.
-  if (turno?.estado === 'perdido') {
+  if (turno?.estado === 'perdido' && !turno.es_recuperado) {
     return (
       <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-6">
         <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden">

@@ -9,6 +9,7 @@ export interface TurnData {
   fecha_creacion?: string | null
   categoria_nombre?: string | null
   categoria_tiempo?: number | null
+  es_recuperado?: boolean | null
 }
 
 function normalizeEstado(estadoDb: string | null): string | null {
@@ -112,6 +113,7 @@ export async function getActiveTurn(): Promise<TurnData | null> {
       fecha_creacion: data.emitido_en,
       categoria_nombre: catData.nombre,
       categoria_tiempo: catData.tiempo,
+      es_recuperado: data.es_recuperado ?? false
     }
   } catch (err) {
     return null;
