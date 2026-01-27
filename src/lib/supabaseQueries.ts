@@ -47,7 +47,10 @@ export async function getTurnByNumber(turnCode: string): Promise<TurnData | null
       .from('turno')
       .select(`*,es_recuperado,categoria:categoria_id ( nombre, tiempo_prom_seg )`)
       .eq('codigo', turnCode)
-      .maybeSingle();
+      .order('emitido_en', { ascending: false })
+      .limit(1)
+      .single();
+
 
 
     if (error) {
